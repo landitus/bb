@@ -122,6 +122,7 @@ interface ClientTurnRejectedArgs extends EventFactoryRowOptions {
 
 interface ReasoningCompletedArgs extends ProviderTurnEventOptions {
   itemId?: string;
+  summary?: string;
   text: string;
 }
 
@@ -382,6 +383,9 @@ export interface TimelineEventFactory {
   reasoningDelta(
     args: ReasoningDeltaArgs,
   ): ThreadEventRowOfType<"item/reasoning/textDelta">;
+  reasoningSummaryDelta(
+    args: ReasoningDeltaArgs,
+  ): ThreadEventRowOfType<"item/reasoning/summaryTextDelta">;
   reasoningStarted(
     args?: ReasoningStartedArgs,
   ): ThreadEventRowOfType<"item/started">;
@@ -1275,7 +1279,7 @@ export function createTimelineEventFactory(
           item: {
             type: "reasoning",
             id: args.itemId ?? `reasoning-${base.seq}`,
-            summary: [],
+            summary: args.summary ? [args.summary] : [],
             content: [args.text],
             ...(args.parentToolCallId
               ? { parentToolCallId: args.parentToolCallId }
@@ -1289,6 +1293,24 @@ export function createTimelineEventFactory(
       return {
         ...base,
         type: "item/reasoning/textDelta",
+        data: {
+          ...providerFields(args),
+          itemId: args.itemId ?? `reasoning-${base.seq}`,
+          delta: args.delta,
+          ...(args.parentToolCallId
+            ? { parentToolCallId: args.parentToolCallId }
+            : {}),
+        },
+      };
+    },
+    reasoningSummaryDelta(args) {
+      const base = nextProviderTurnScopedRowBase(
+        "reasoning-summary-delta",
+        args,
+      );
+      return {
+        ...base,
+        type: "item/reasoning/summaryTextDelta",
         data: {
           ...providerFields(args),
           itemId: args.itemId ?? `reasoning-${base.seq}`,

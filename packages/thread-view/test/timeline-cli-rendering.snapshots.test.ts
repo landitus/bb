@@ -2353,6 +2353,54 @@ describe("timeline CLI rendering snapshots", () => {
     `);
   });
 
+  it("keeps reasoning summary and body aligned between live and restored timelines", () => {
+    const event = createTimelineEventFactory({ threadId: "thread-1" });
+    const streamingEvents = [
+      event.turnStarted({ createdAt: 0 }),
+      event.reasoningStarted({ createdAt: 1_000, itemId: "reasoning-1" }),
+      event.reasoningSummaryDelta({
+        createdAt: 2_000,
+        itemId: "reasoning-1",
+        delta: "Summary channel.\n",
+      }),
+      event.reasoningDelta({
+        createdAt: 3_000,
+        itemId: "reasoning-1",
+        delta: "Body channel.\n",
+      }),
+    ];
+    const liveThinking = renderActiveTimeline(streamingEvents);
+    const completedEvents = [
+      ...streamingEvents,
+      event.reasoningCompleted({
+        createdAt: 4_000,
+        itemId: "reasoning-1",
+        summary: "Summary channel.\n",
+        text: "Body channel.\n",
+      }),
+      event.turnCompleted({ createdAt: 5_000 }),
+    ];
+    const completedLive = renderActiveTimeline(completedEvents.slice(0, -1));
+    const restored = renderIdleTimeline(completedEvents);
+
+    expect(liveThinking.projection.state.activeThinking?.text).toBe(
+      "Summary channel.\nBody channel.\n",
+    );
+    expect(
+      completedLive.messages.filter((message) => message.kind === "operation"),
+    ).toEqual([
+      expect.objectContaining({
+        detail: "Summary channel.\nBody channel.\n",
+        status: "completed",
+        title: "Thought for 3s",
+      }),
+    ]);
+    expect(restored.messages).toEqual(completedLive.messages);
+    expect(renderIdleTimeline(completedEvents).messages).toEqual(
+      restored.messages,
+    );
+  });
+
   it("keeps completed reasoning at root when provider parent scope is suppressed", () => {
     const event = createTimelineEventFactory({ threadId: "thread-1" });
     const startRequest = event.clientTurnRequested({
