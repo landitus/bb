@@ -34,6 +34,10 @@ import {
 import type { PaneContent, SplitLayout } from "@/lib/split-layout";
 import { usePromptDraftStorage } from "@/hooks/usePromptDraftStorage";
 import { createBbDesktopApi } from "@/test/bb-desktop-test-utils";
+import {
+  CHROME_ROW_CLASS,
+  MACOS_APP_REGION_NO_DRAG_CLASS,
+} from "@/lib/bb-desktop";
 import { resourceRouteLabelAtom } from "@/components/layout/resourceRouteLabelAtom";
 import {
   resetPluginSlotStoreForTest,
@@ -1460,6 +1464,36 @@ describe("SplitThreadArea", () => {
         .querySelector("button")
         ?.getAttribute("aria-expanded"),
     ).toBe("false");
+  });
+
+  it("centers the window panel toggle on the shared chrome row", async () => {
+    renderSplitArea({
+      path: threadPath("thr-a"),
+      layout: twoPaneLayout("pane-1"),
+    });
+
+    const toggle = await screen.findByTestId("split-workspace-panel-toggle");
+    const chromeRow = toggle.parentElement;
+
+    expect(chromeRow).not.toBeNull();
+    for (const className of CHROME_ROW_CLASS.split(" ")) {
+      expect(chromeRow?.classList).toContain(className);
+    }
+    for (const className of [
+      "absolute",
+      "inset-x-0",
+      "top-0",
+      "justify-end",
+      "px-4",
+    ]) {
+      expect(chromeRow?.classList).toContain(className);
+    }
+    expect(chromeRow?.classList).toContain("pointer-events-none");
+    expect(chromeRow?.classList).not.toContain("top-2.5");
+    expect(toggle.classList).toContain("pointer-events-auto");
+    for (const className of MACOS_APP_REGION_NO_DRAG_CLASS.split(" ")) {
+      expect(toggle.classList).toContain(className);
+    }
   });
 
   it("keeps the panel available for a focused new-thread pane", async () => {

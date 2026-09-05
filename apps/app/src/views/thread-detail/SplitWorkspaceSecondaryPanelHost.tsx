@@ -41,7 +41,10 @@ import {
   PANEL_RESIZE_HANDLE_LAYER_CLASS,
   PANEL_RESIZE_HIT_TARGET_CLASS,
 } from "@/components/secondary-panel/panelTransitionTokens";
-import { MACOS_APP_REGION_NO_DRAG_CLASS } from "@/lib/bb-desktop";
+import {
+  CHROME_ROW_CLASS,
+  MACOS_APP_REGION_NO_DRAG_CLASS,
+} from "@/lib/bb-desktop";
 import { PluginComposerHostProvider } from "@/components/plugin/plugin-composer-host";
 import { usePanelResizeSnap } from "@/components/secondary-panel/usePanelResizeSnap";
 import {
@@ -196,31 +199,38 @@ export function SplitWorkspaceSecondaryPanelHost({
         style={getPanelCollapseTransitionStyle(model?.transitionsReady ?? true)}
       >
         <div
-          data-testid="split-workspace-panel-toggle"
           className={cn(
-            "absolute right-4 top-2.5 z-40",
-            !showsCornerToggle && "hidden",
-            MACOS_APP_REGION_NO_DRAG_CLASS,
+            CHROME_ROW_CLASS,
+            "pointer-events-none absolute inset-x-0 top-0 z-40 justify-end px-4",
           )}
         >
-          <AppCommandShortcutHint
-            shortcut={shortcut}
-            className="absolute right-0 top-full mt-1"
-          />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className={HEADER_ICON_BUTTON_CLASS}
-            aria-label={
-              shortcut ? `${toggleLabel} (${shortcut.label})` : toggleLabel
-            }
-            aria-keyshortcuts={shortcut?.ariaKeyshortcuts}
-            aria-expanded={isOpen}
-            onClick={toggleWindowPanel}
+          <div
+            data-testid="split-workspace-panel-toggle"
+            className={cn(
+              "pointer-events-auto relative",
+              !showsCornerToggle && "hidden",
+              MACOS_APP_REGION_NO_DRAG_CLASS,
+            )}
           >
-            <Icon name={toggleIconName} />
-          </Button>
+            <AppCommandShortcutHint
+              shortcut={shortcut}
+              className="absolute right-0 top-full mt-1"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className={HEADER_ICON_BUTTON_CLASS}
+              aria-label={
+                shortcut ? `${toggleLabel} (${shortcut.label})` : toggleLabel
+              }
+              aria-keyshortcuts={shortcut?.ariaKeyshortcuts}
+              aria-expanded={isOpen}
+              onClick={toggleWindowPanel}
+            >
+              <Icon name={toggleIconName} />
+            </Button>
+          </div>
         </div>
         <PanelGroup
           ref={panelGroupRef}
